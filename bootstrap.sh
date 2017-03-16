@@ -130,6 +130,15 @@ do
       TOOLSET=`expr "x$option" : "x-*with-toolset=\(.*\)"`
       ;;
 
+    -with-android-arch=* | --with-android-arch=* )
+      FOR_ANDROID=1
+      ANDROID_ARCH=`expr "x$option" : "x-*with-android-arch=\(.*\)"`
+      ;;
+
+    -with-android-gcc=* | --with-android-gcc=* )
+      ANDROID_GCC=`expr "x$option" : "x-*with-android-gcc=\(.*\)"`
+      ;;
+
     -*)
       { echo "error: unrecognized option: $option
 Try \`$0 --help' for more information." >&2
@@ -174,6 +183,10 @@ Configuration:
   --with-python-version=X.Y specify the Python version as X.Y
                             [automatically detected]
 
+For Android:
+  --with-android-arch       e.g, "arm"
+  --with-android-gcc        e.g, "arm-linux-androideabi-g++"
+
 Installation directories:
   --prefix=PREFIX           install Boost into the given PREFIX
                             [/usr/local]
@@ -187,6 +200,16 @@ More precise control over installation directories:
 EOF
 fi
 test -n "$want_help" && exit 0
+
+# For Andoid
+if test "x$FOR_ANDROID" = x1; then
+  $ECHO "Building for Android"
+  TOOLSET=gcc
+  if test "x$ANDROID_GCC" = x; then
+      echo "You need to set flag --with-android-gcc"
+      exit 1
+  fi
+fi
 
 # TBD: Determine where the script is located
 my_dir="."
@@ -328,6 +351,17 @@ if test -r "project-config.jam"; then
   mv "project-config.jam" "project-config.jam.$counter"
 fi
 
+$USING
+
+# For Andoid
+if test "x$FOR_ANDROID" = x1; then
+  $ECHO "Android build"
+  if test "x$ANDROID_GCC" = x; then
+      echo "You need to set flag --with-android-gcc"
+      exit 1
+  fi
+fi
+
 # Generate user-config.jam
 echo "Generating Boost.Build configuration in project-config.jam..."
 cat > project-config.jam <<EOF
@@ -343,6 +377,12 @@ import feature ;
 if ! $TOOLSET in [ feature.values <toolset> ]
 {
     using $TOOLSET ; 
+}
+
+# For Android
+if $FOR_ANDROID=1
+{
+    using $TOOLSET : $ANDROID_ARCH : $ANDROID_GCC ; 
 }
 
 project : default-build <toolset>$TOOLSET ;
