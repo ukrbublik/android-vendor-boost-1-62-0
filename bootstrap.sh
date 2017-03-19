@@ -34,6 +34,10 @@ flag_no_python=
 flag_icu=
 flag_show_libraries=
 
+FOR_ANDROID=0
+ANDROID_ARCH="arm"
+ANDROID_GCC="gcc"
+
 for option
 do
     case $option in
@@ -380,7 +384,7 @@ if ! $TOOLSET in [ feature.values <toolset> ]
 }
 
 # For Android
-if $FOR_ANDROID=1
+if ("$FOR_ANDROID"=="1")
 {
     using $TOOLSET : $ANDROID_ARCH : $ANDROID_GCC ; 
 }
